@@ -12,7 +12,7 @@
     "build": "tsup ./src/index.ts --minify --dts --format cjs,esm --out-dir ./dist",
     "start": "node dist/index.js",
     "test": "node --import tsx --test **/*.test.ts",
-    "test:coverage": "node --import tsx --test --coverage **/*.test.ts",
+    "test:coverage": "node --import tsx --experimental-test-coverage --test-coverage-exclude **/*.test.ts --test **/*.test.ts",
     "watch": "tsup ./src/index.ts --dts --format cjs,esm --out-dir ./dist --watch --onSuccess \"node dist/index.js\"",
     "release:patch": "npm version patch && git push --follow-tags",
     "release:minor": "npm version minor && git push --follow-tags",

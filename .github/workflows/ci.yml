@@ -1,16 +1,16 @@
 name: Publish Pkg
 
 on:
-  push:
-    tags:
-      - 'v*'
+  pull_request:
+    branches:
+      - main
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  publish_release:
+  test:
     name: Build & Publish package
     runs-on: ubuntu-latest
     permissions:

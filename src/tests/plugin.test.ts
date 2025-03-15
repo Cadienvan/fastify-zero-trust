@@ -116,4 +116,67 @@ describe('fastify-zero-trust', async () => {
 
     assert.strictEqual(responseWithToken.statusCode, 200)
   })
+
+  test('should use custom onMissingValidator handler', async () => {
+    const fastify = Fastify()
+    await fastify.register(zeroTrust, {
+      onMissingValidator: async (request, reply) => {
+        reply.code(401).send({ error: 'Custom missing validator message' })
+      }
+    })
+
+    fastify.get('/test', async () => ({ hello: 'world' }))
+
+    const response = await fastify.inject({
+      method: 'GET',
+      url: '/test'
+    })
+
+    assert.strictEqual(response.statusCode, 401)
+    assert.deepStrictEqual(JSON.parse(response.payload), { error: 'Custom missing validator message' })
+  })
+
+  test('should use custom onValidatorDenied handler', async () => {
+    const fastify = Fastify()
+    await fastify.register(zeroTrust, {
+      onValidatorDenied: async (request, reply) => {
+        reply.code(401).send({ error: 'Custom validator denied message' })
+      }
+    })
+
+    fastify.get('/test', {
+      allowIf: async () => false
+    }, async () => ({ hello: 'world' }))
+
+    const response = await fastify.inject({
+      method: 'GET',
+      url: '/test'
+    })
+
+    assert.strictEqual(response.statusCode, 401)
+    assert.deepStrictEqual(JSON.parse(response.payload), { error: 'Custom validator denied message' })
+  })
+
+  test('should use custom onValidatorError handler', async () => {
+    const fastify = Fastify()
+    await fastify.register(zeroTrust, {
+      onValidatorError: async (request, reply, error) => {
+        reply.code(500).send({ error: `Custom error: ${error.message}` })
+      }
+    })
+
+    fastify.get('/test', {
+      allowIf: async () => {
+        throw new Error('Test error')
+      }
+    }, async () => ({ hello: 'world' }))
+
+    const response = await fastify.inject({
+      method: 'GET',
+      url: '/test'
+    })
+
+    assert.strictEqual(response.statusCode, 500)
+    assert.deepStrictEqual(JSON.parse(response.payload), { error: 'Custom error: Test error' })
+  })
 })

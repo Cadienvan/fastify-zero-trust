@@ -45,6 +45,27 @@ fastify.get('/protected', {
 await fastify.listen({ port: 3000 })
 ```
 
+## Plugin Options
+
+You can customize error handling by providing callbacks for different validation scenarios:
+
+```typescript
+await fastify.register(zeroTrust, {
+  // Called when no validator is found for a route
+  onMissingValidator: async (request, reply) => {
+    reply.code(403).send({ error: 'Custom default deny message' })
+  },
+  // Called when a validator returns false
+  onValidatorDenied: async (request, reply) => {
+    reply.code(403).send({ error: 'Custom validation denied message' })
+  },
+  // Called when a validator throws an error
+  onValidatorError: async (request, reply, error) => {
+    reply.code(403).send({ error: `Validation error: ${error.message}` })
+  }
+})
+```
+
 ## Route Configuration
 
 The plugin adds an `allowIf` option to route definitions. This function should return a Promise<boolean>:

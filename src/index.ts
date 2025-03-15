@@ -7,7 +7,13 @@ declare module 'fastify' {
   }
 }
 
-const plugin: FastifyPluginAsync = async (fastify) => {
+export interface ZeroTrustOptions {
+  onMissingValidator?: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
+  onValidatorDenied?: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
+  onValidatorError?: (request: FastifyRequest, reply: FastifyReply, error: Error) => Promise<void>
+}
+
+const plugin: FastifyPluginAsync<ZeroTrustOptions> = async (fastify, options) => {
   const validators = new Map<string, (request: FastifyRequest) => Promise<boolean>>()
 
   // Add hook to store validator during route registration
@@ -24,15 +30,24 @@ const plugin: FastifyPluginAsync = async (fastify) => {
     const validator = validators.get(`${routeOptions.method}:${routeOptions.url}`)
 
     if (!validator) {
+      if (options.onMissingValidator) {
+        return options.onMissingValidator(request, reply)
+      }
       return reply.code(403).send({ error: 'Access denied by default' })
     }
 
     try {
       const isAllowed = await validator(request)
       if (!isAllowed) {
+        if (options.onValidatorDenied) {
+          return options.onValidatorDenied(request, reply)
+        }
         return reply.code(403).send({ error: 'Access denied by validator' })
       }
     } catch (error) {
+      if (options.onValidatorError) {
+        return options.onValidatorError(request, reply, error as Error)
+      }
       return reply.code(403).send({ error: 'Access validation failed' })
     }
   })
