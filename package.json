@@ -14,9 +14,9 @@
     "test": "node --import tsx --test **/*.test.ts",
     "test:coverage": "node --import tsx --experimental-test-coverage --test-coverage-exclude **/*.test.ts --test **/*.test.ts",
     "watch": "tsup ./src/index.ts --dts --format cjs,esm --out-dir ./dist --watch --onSuccess \"node dist/index.js\"",
-    "release:patch": "npm version patch && git push --follow-tags",
-    "release:minor": "npm version minor && git push --follow-tags",
-    "release:major": "npm version major && git push --follow-tags"
+    "release:patch": "npm version patch && git push --follow-tags && npm publish --access public",
+    "release:minor": "npm version minor && git push --follow-tags && npm publish --access public",
+    "release:major": "npm version major && git push --follow-tags && npm publish --access public"
   },
   "keywords": [],
   "license": "ISC",
