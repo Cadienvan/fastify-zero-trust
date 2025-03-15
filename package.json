@@ -1,0 +1,38 @@
+{
+  "name": "fastify-zero-trust",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup ./src/index.ts --minify --dts --format cjs,esm --out-dir ./dist",
+    "start": "node dist/index.js",
+    "test": "node --import tsx --test **/*.test.ts",
+    "test:coverage": "node --import tsx --test --coverage **/*.test.ts",
+    "watch": "tsup ./src/index.ts --dts --format cjs,esm --out-dir ./dist --watch --onSuccess \"node dist/index.js\"",
+    "release:patch": "npm version patch && git push --follow-tags",
+    "release:minor": "npm version minor && git push --follow-tags",
+    "release:major": "npm version major && git push --follow-tags"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.12.0",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1",
+    "fastify-plugin": "^5.0.1"
+  },
+  "author": {
+    "name": "Michael Di Prisco",
+    "email": "cadienvan@gmail.com"
+  }
+}
