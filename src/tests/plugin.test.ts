@@ -179,4 +179,36 @@ describe('fastify-zero-trust', async () => {
     assert.strictEqual(response.statusCode, 500)
     assert.deepStrictEqual(JSON.parse(response.payload), { error: 'Custom error: Test error' })
   })
+
+  test('should have access to POST data in validator', async () => {
+    const fastify = Fastify()
+    await fastify.register(zeroTrust)
+
+    fastify.post('/test', {
+      allowIf: async (request) => {
+        const body = request.body as { token?: string }
+        return body.token === 'secret-token'
+      }
+    }, async () => ({ success: true }))
+
+    const responseWithoutToken = await fastify.inject({
+      method: 'POST',
+      url: '/test',
+      payload: {}
+    })
+
+    assert.strictEqual(responseWithoutToken.statusCode, 403)
+
+    const responseWithToken = await fastify.inject({
+      method: 'POST',
+      url: '/test',
+      payload: {
+        token: 'secret-token'
+      }
+    })
+
+    assert.strictEqual(responseWithToken.statusCode, 200)
+    assert.deepStrictEqual(JSON.parse(responseWithToken.payload), { success: true })
+  })
+
 })
