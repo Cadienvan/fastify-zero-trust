@@ -25,7 +25,7 @@ const plugin: FastifyPluginAsync<ZeroTrustOptions> = async (fastify, options) =>
   })
 
   // Add onRequest hook to implement zero-trust
-  fastify.addHook('preHandler', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.addHook('preValidation', async (request: FastifyRequest, reply: FastifyReply) => {
     const routeOptions = request.routeOptions
     const validator = validators.get(`${routeOptions.method}:${routeOptions.url}`)
 
