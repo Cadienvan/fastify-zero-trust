@@ -47,10 +47,12 @@ await fastify.listen({ port: 3000 })
 
 ## Plugin Options
 
-You can customize error handling by providing callbacks for different validation scenarios:
+You can customize error handling and exclude routes by providing options:
 
 ```typescript
 await fastify.register(zeroTrust, {
+  // Routes to exclude from validation (format: "METHOD:/path")
+  excludedRoutes: ['GET:/health', 'GET:/metrics'],
   // Called when no validator is found for a route
   onMissingValidator: async (request, reply) => {
     reply.code(403).send({ error: 'Custom default deny message' })

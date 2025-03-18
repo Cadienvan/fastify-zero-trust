@@ -211,4 +211,29 @@ describe('fastify-zero-trust', async () => {
     assert.deepStrictEqual(JSON.parse(responseWithToken.payload), { success: true })
   })
 
+  test('should skip validation for excluded routes', async () => {
+    const fastify = Fastify()
+    await fastify.register(zeroTrust, {
+      excludedRoutes: ['GET:/excluded']
+    })
+
+    fastify.get('/excluded', async () => ({ hello: 'world' }))
+    fastify.get('/protected', async () => ({ hello: 'world' }))
+
+    const excludedResponse = await fastify.inject({
+      method: 'GET',
+      url: '/excluded'
+    })
+
+    assert.strictEqual(excludedResponse.statusCode, 200)
+    assert.deepStrictEqual(JSON.parse(excludedResponse.payload), { hello: 'world' })
+
+    const protectedResponse = await fastify.inject({
+      method: 'GET',
+      url: '/protected'
+    })
+
+    assert.strictEqual(protectedResponse.statusCode, 403)
+  })
+
 })
