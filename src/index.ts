@@ -22,14 +22,18 @@ export interface ZeroTrustOptions {
 }
 
 const plugin: FastifyPluginAsync<ZeroTrustOptions> = async (fastify, options) => {
-  const validators = new Map<string, (request: FastifyRequest) => Promise<boolean>>()
+  const validators = new WeakMap<Object, (request: FastifyRequest) => Promise<boolean>>()
   const excludedRoutes = options.excludedRoutes || []
 
   // Add hook to store validator during route registration
   fastify.addHook('onRoute', (routeOptions: RouteOptions) => {
     if (routeOptions.allowIf) {
-      validators.set(`${routeOptions.method}:${routeOptions.url}`, routeOptions.allowIf)
-      delete routeOptions.allowIf // Clean up since it's not a standard option
+      const seed = {} // new object, new reference
+      validators.set(seed, routeOptions.allowIf);
+      routeOptions.config ??= {};
+      (routeOptions.config as any).seed = seed
+
+      routeOptions.allowIf = undefined // Clean up since it's not a standard option
     }
   })
 
@@ -43,7 +47,7 @@ const plugin: FastifyPluginAsync<ZeroTrustOptions> = async (fastify, options) =>
       return
     }
 
-    const validator = validators.get(routePath)
+    const validator = validators.get((request.routeOptions.config as any).seed)
 
     if (!validator) {
       if (options.onMissingValidator) {
