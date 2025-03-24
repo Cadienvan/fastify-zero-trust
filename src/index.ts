@@ -5,6 +5,10 @@ declare module 'fastify' {
   interface RouteShorthandOptions {
     allowIf?: (request: FastifyRequest) => Promise<boolean>
   }
+
+  interface FastifyContextConfig {
+    seed?: Object
+  }
 }
 
 /**
@@ -27,11 +31,18 @@ const plugin: FastifyPluginAsync<ZeroTrustOptions> = async (fastify, options) =>
 
   // Add hook to store validator during route registration
   fastify.addHook('onRoute', (routeOptions: RouteOptions) => {
+    const routePath = `${routeOptions.method}:${routeOptions.url}` as ZeroTrustRoute
+    
+    // Skip validator storage for excluded routes
+    if (excludedRoutes.includes(routePath)) {
+      return
+    }
+
     if (routeOptions.allowIf) {
       const seed = {} // new object, new reference
       validators.set(seed, routeOptions.allowIf);
       routeOptions.config ??= {};
-      (routeOptions.config as any).seed = seed
+      routeOptions.config.seed = seed
 
       routeOptions.allowIf = undefined // Clean up since it's not a standard option
     }
@@ -47,7 +58,9 @@ const plugin: FastifyPluginAsync<ZeroTrustOptions> = async (fastify, options) =>
       return
     }
 
-    const validator = validators.get((request.routeOptions.config as any).seed)
+    const validator = request.routeOptions.config?.seed 
+      ? validators.get(request.routeOptions.config.seed)
+      : undefined
 
     if (!validator) {
       if (options.onMissingValidator) {
